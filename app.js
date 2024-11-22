@@ -4,9 +4,8 @@ app.use(express.json());
 
 app.listen(8000);
 
-app.post('/procesar-deducible', (req, res) => {
-
-  const text = req.body.text;
+const procesarDeducible = (req) => {
+  const text = req.payload.text;
 
   const patroneDeducibles = /(\*|-)\s*(.*?)(?=\s*\*|\s*-|$)/g;
 
@@ -20,6 +19,7 @@ app.post('/procesar-deducible', (req, res) => {
   const deducibles = listaDeducibles.map((deducible) => {
     let patronDeducible = /(\d+(\.\d+)?)%\s*del monto a indemnizar/i.exec(deducible);
     let valorDeducible = patronDeducible ? parseInt(patronDeducible[1]) : 0;
+
     patronDeducible = /(\d+(\.\d+)?)%\s*del monto indemnizable/i.exec(deducible);
     valorDeducible = patronDeducible ? parseInt(patronDeducible[1]) : valorDeducible;
     patronDeducible = /(\d+(\.\d+)?)%\s*del monto del siniestro/i.exec(deducible);
@@ -54,5 +54,11 @@ app.post('/procesar-deducible', (req, res) => {
   const resultado = {
     payload: deducibles
   };
-  res.json({requestBody: resultado})
+  return { requestBody: resultado };
+};
+
+app.post('/procesar-deducible', (req, res) => {
+  res.json(procesarDeducible(req));
 });
+
+module.exports = { app, procesarDeducible };
